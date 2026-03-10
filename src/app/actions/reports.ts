@@ -45,7 +45,6 @@ export async function getReportsData() {
   })
 
   const topProducts = await Promise.all(
-    topItems.map(async (item) => {
       const product = await prisma.product.findUnique({ where: { id: item.productId } })
       return {
         name: product?.name ?? 'Unknown',
