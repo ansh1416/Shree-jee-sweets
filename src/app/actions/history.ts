@@ -25,3 +25,20 @@ export async function getSalesHistory(days: number = 7) {
     },
   })
 }
+
+export async function deleteSale(id: string) {
+  try {
+    await prisma.saleItem.deleteMany({
+      where: { saleId: id },
+    })
+    
+    await prisma.sale.delete({
+      where: { id },
+    })
+    
+    return { success: true }
+  } catch (error) {
+    console.error('Failed to delete sale:', error)
+    return { error: 'Failed to delete sale' }
+  }
+}
