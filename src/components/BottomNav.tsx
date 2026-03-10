@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, ShoppingCart, Package, FileText, History } from 'lucide-react'
+import { LayoutDashboard, ShoppingCart, Package, FileText, History, Settings } from 'lucide-react'
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
@@ -16,6 +16,7 @@ const navItems = [
   { name: 'History', href: '/history', icon: History },
   { name: 'Inventory', href: '/inventory', icon: Package },
   { name: 'Reports', href: '/reports', icon: FileText },
+  { name: 'Admin', href: '/admin', icon: Settings },
 ]
 
 export function BottomNav() {
