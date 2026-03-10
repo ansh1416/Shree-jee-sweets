@@ -1,4 +1,5 @@
-export const dynamic = "force-dynamic";
+export const dynamic = "force-dynamic"
+export const revalidate = 0
 import { getInventoryWithProducts } from '@/app/actions/inventory'
 import InventoryClient from '@/components/InventoryClient'
 import { Package } from 'lucide-react'
