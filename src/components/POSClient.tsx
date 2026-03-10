@@ -29,7 +29,6 @@ export default function POSClient({ products }: { products: Product[] }) {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [quantity, setQuantity] = useState<number | ''>('')
   const [unitType, setUnitType] = useState<'kg' | 'kg_actual' | 'piece' | 'bowl'>('kg')
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const [toast, setToast] = useState<{ amount: number } | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -47,25 +46,28 @@ export default function POSClient({ products }: { products: Product[] }) {
 
   const handleSale = async () => {
     if (!selectedProduct || typeof quantity !== 'number' || quantity <= 0) return
-    setIsSubmitting(true)
-    try {
-      // Normalize: always store grams for kg-based products
-      const storedQuantity = unitType === 'kg_actual' ? quantity * 1000 : quantity
 
-      await createSale({
-        items: [{ productId: selectedProduct.id, quantity: storedQuantity, amount: currentAmount, profit: 0 }],
-        totalAmount: currentAmount,
-        totalProfit: 0,
-      })
-      setToast({ amount: currentAmount })
-      setTimeout(() => setToast(null), 3000)
-      setSelectedProduct(null)
-      setQuantity('')
-    } catch {
-      alert('Failed to record sale')
-    } finally {
-      setIsSubmitting(false)
-    }
+    // Capture values before resetting state
+    const product = selectedProduct
+    const amount = currentAmount
+    const storedQuantity = unitType === 'kg_actual' ? quantity * 1000 : quantity
+
+    // Optimistic: reset UI immediately so it feels instant
+    setSelectedProduct(null)
+    setQuantity('')
+    setToast({ amount })
+    setTimeout(() => setToast(null), 3000)
+
+    // Fire to server in background — no blocking
+    createSale({
+      items: [{ productId: product.id, quantity: storedQuantity, amount, profit: 0 }],
+      totalAmount: amount,
+      totalProfit: 0,
+    }).catch(() => {
+      // If it fails, show a subtle error
+      setToast(null)
+      alert('Sale failed to save. Please try again.')
+    })
   }
 
 
@@ -228,12 +230,13 @@ export default function POSClient({ products }: { products: Product[] }) {
               {/* Submit */}
               <button
                 onClick={handleSale}
-                disabled={isSubmitting || !quantity}
+                disabled={!quantity}
                 className="w-full bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-400 hover:to-red-500 active:scale-[0.98] text-white font-black py-4 rounded-2xl flex justify-between items-center px-5 shadow-[0_0_30px_rgba(249,115,22,0.3)] transition-all disabled:opacity-30 disabled:pointer-events-none"
               >
-                <span className="text-lg tracking-wide">{isSubmitting ? 'Processing...' : 'Complete Sale'}</span>
+                <span className="text-lg tracking-wide">Complete Sale</span>
                 <span className="text-xl font-black text-white/80">₹{currentAmount.toFixed(2)}</span>
               </button>
+
 
             </div>
           </div>

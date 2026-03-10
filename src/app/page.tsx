@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { getDashboardStats } from '@/app/actions/dashboard'
 import { IndianRupee, Package, Trophy, TrendingUp, Clock } from 'lucide-react'
 

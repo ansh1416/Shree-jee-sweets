@@ -1,6 +1,6 @@
 import { getProducts } from '@/app/actions/product'
 import { notFound } from 'next/navigation'
-import EditProductForm from './EditProductForm'
+import EditProductForm from '@/app/admin/edit/[id]/EditProductForm'
 
 export default async function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params

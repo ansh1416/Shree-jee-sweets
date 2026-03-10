@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { getSalesHistory } from '@/app/actions/history'
 import { CalendarDays, PackageOpen } from 'lucide-react'
 import Link from 'next/link'

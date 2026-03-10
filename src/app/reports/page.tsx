@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { getReportsData } from '@/app/actions/reports'
 import ReportsClient from '@/components/ReportsClient'
 import { BarChart2 } from 'lucide-react'
