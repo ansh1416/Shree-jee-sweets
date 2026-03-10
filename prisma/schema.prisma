@@ -4,6 +4,7 @@ generator client {
 }
 
 datasource db {
+  provider = "libsql"
   url       = env("DATABASE_URL")
 }
 
