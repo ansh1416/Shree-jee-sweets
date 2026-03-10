@@ -19,95 +19,100 @@ export default function AddProductPage() {
   }, [state.success, router])
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Link href="/admin" className="p-2 bg-white rounded-full shadow-sm hover:bg-gray-50 border border-gray-100 transition-colors">
-          <ArrowLeft className="w-6 h-6 text-gray-700" />
+    <div className="space-y-5 pb-4">
+      <div className="flex items-center gap-3">
+        <Link
+          href="/admin"
+          className="w-9 h-9 bg-white/[0.06] rounded-xl border border-white/[0.08] flex items-center justify-center text-white/50 hover:text-white/80 hover:bg-white/10 transition-all"
+        >
+          <ArrowLeft className="w-4 h-4" />
         </Link>
-        <h2 className="text-2xl font-bold text-gray-800">New Product</h2>
+        <h2 className="text-xl font-black text-white tracking-tight">New Product</h2>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden p-6">
-        <form action={formAction} className="space-y-6">
+      <div className="bg-[#13131e] rounded-3xl border border-white/[0.06] p-5">
+        <form action={formAction} className="space-y-5">
           {state.error && (
-            <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm font-medium border border-red-100">
+            <div className="bg-red-500/10 text-red-400 p-3 rounded-2xl text-sm font-semibold border border-red-500/20 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-400 shrink-0"></span>
               {state.error}
             </div>
           )}
 
-          <div className="space-y-4">
+          {/* Product Name */}
+          <div>
+            <label className="block text-xs font-bold text-white/30 mb-2 uppercase tracking-widest">Product Name</label>
+            <input
+              type="text"
+              name="name"
+              required
+              className="w-full px-4 py-3.5 bg-white/[0.05] border border-white/[0.08] rounded-2xl text-white font-semibold placeholder:text-white/15 focus:outline-none focus:border-orange-500/50 focus:bg-white/[0.07] focus:ring-4 focus:ring-orange-500/10 transition-all"
+              placeholder="e.g. Kaju Katli"
+            />
+          </div>
+
+          {/* Category + Cost Price */}
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
+              <label className="block text-xs font-bold text-white/30 mb-2 uppercase tracking-widest">Category</label>
+              <select
+                name="category"
+                className="w-full px-4 py-3.5 bg-white/[0.05] border border-white/[0.08] rounded-2xl text-white/70 font-semibold focus:outline-none focus:border-orange-500/50 focus:bg-white/[0.07] transition-all appearance-none"
+              >
+                <option value="sweet" className="bg-[#1a1a26] text-white">Sweet</option>
+                <option value="snack" className="bg-[#1a1a26] text-white">Snack</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-white/30 mb-2 uppercase tracking-widest">Cost Price (₹)</label>
               <input
-                type="text"
-                name="name"
+                type="number"
+                name="costPrice"
+                step="0.01"
                 required
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all"
-                placeholder="e.g. Kaju Katli"
+                className="w-full px-4 py-3.5 bg-white/[0.05] border border-white/[0.08] rounded-2xl text-white font-semibold placeholder:text-white/15 focus:outline-none focus:border-orange-500/50 focus:bg-white/[0.07] focus:ring-4 focus:ring-orange-500/10 transition-all"
+                placeholder="e.g. 500"
               />
             </div>
+          </div>
 
-            <div className="grid grid-cols-2 gap-4">
+          {/* Selling Prices */}
+          <div className="border-t border-white/[0.06] pt-4">
+            <h3 className="text-xs font-bold text-white/40 mb-3 uppercase tracking-widest">Selling Prices (fill at least one)</h3>
+            
+            <div className="space-y-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                <select 
-                  name="category"
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all"
-                >
-                  <option value="sweet">Sweet</option>
-                  <option value="snack">Snack</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Cost Price (₹)</label>
+                <label className="block text-xs font-bold text-white/25 mb-2 uppercase tracking-widest">Price per KG (₹)</label>
                 <input
                   type="number"
-                  name="costPrice"
+                  name="pricePerKg"
                   step="0.01"
-                  required
-                  className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all"
-                  placeholder="e.g. 500"
+                  className="w-full px-4 py-3.5 bg-orange-500/[0.05] border border-orange-500/[0.15] rounded-2xl text-white font-semibold placeholder:text-white/15 focus:outline-none focus:border-orange-500/60 focus:ring-4 focus:ring-orange-500/10 transition-all"
+                  placeholder="e.g. 900"
                 />
               </div>
-            </div>
-
-            <div className="border-t border-gray-100 pt-4 mt-4">
-              <h3 className="text-sm font-bold text-gray-800 mb-3">Selling Prices (Fill at least one)</h3>
               
-              <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-gray-500 mb-1">Price per KG (₹)</label>
+                  <label className="block text-xs font-bold text-white/25 mb-2 uppercase tracking-widest">Per Piece (₹)</label>
                   <input
                     type="number"
-                    name="pricePerKg"
+                    name="pricePerPiece"
                     step="0.01"
-                    className="w-full px-4 py-3 bg-orange-50/50 border border-orange-100 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all"
-                    placeholder="e.g. 900"
+                    className="w-full px-4 py-3.5 bg-orange-500/[0.05] border border-orange-500/[0.15] rounded-2xl text-white font-semibold placeholder:text-white/15 focus:outline-none focus:border-orange-500/60 focus:ring-4 focus:ring-orange-500/10 transition-all"
+                    placeholder="e.g. 20"
                   />
                 </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-500 mb-1">Price per Piece (₹)</label>
-                    <input
-                      type="number"
-                      name="pricePerPiece"
-                      step="0.01"
-                      className="w-full px-4 py-3 bg-orange-50/50 border border-orange-100 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all"
-                      placeholder="e.g. 20"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-gray-500 mb-1">Price per Bowl (₹)</label>
-                    <input
-                      type="number"
-                      name="pricePerBowl"
-                      step="0.01"
-                      className="w-full px-4 py-3 bg-orange-50/50 border border-orange-100 rounded-xl focus:ring-2 focus:ring-orange-500 outline-none transition-all"
-                      placeholder="e.g. 40"
-                    />
-                  </div>
+                <div>
+                  <label className="block text-xs font-bold text-white/25 mb-2 uppercase tracking-widest">Per Bowl (₹)</label>
+                  <input
+                    type="number"
+                    name="pricePerBowl"
+                    step="0.01"
+                    className="w-full px-4 py-3.5 bg-orange-500/[0.05] border border-orange-500/[0.15] rounded-2xl text-white font-semibold placeholder:text-white/15 focus:outline-none focus:border-orange-500/60 focus:ring-4 focus:ring-orange-500/10 transition-all"
+                    placeholder="e.g. 40"
+                  />
                 </div>
               </div>
             </div>
@@ -116,7 +121,7 @@ export default function AddProductPage() {
           <button
             type="submit"
             disabled={isPending}
-            className="w-full py-4 mt-8 bg-orange-500 hover:bg-orange-600 active:bg-orange-700 text-white font-bold rounded-xl shadow-[0_4px_14px_0_rgba(249,115,22,0.39)] transition-all disabled:opacity-70 disabled:cursor-not-allowed text-lg"
+            className="w-full py-4 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-400 hover:to-red-500 active:scale-[0.98] text-white font-black rounded-2xl shadow-[0_0_30px_rgba(249,115,22,0.25)] transition-all disabled:opacity-40 disabled:pointer-events-none text-base tracking-wide"
           >
             {isPending ? 'Saving...' : 'Save Product'}
           </button>

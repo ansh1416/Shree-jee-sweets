@@ -17,6 +17,7 @@ export default async function HistoryPage({
       weekday: 'short',
       day: '2-digit',
       month: 'short',
+      timeZone: 'Asia/Kolkata',
     })
     if (!grouped[key]) grouped[key] = []
     grouped[key].push(sale)
@@ -80,7 +81,7 @@ export default async function HistoryPage({
                       <div key={sale.id} className="p-4 hover:bg-white/[0.02] transition-colors group">
                         <div className="flex justify-between items-center mb-3">
                           <span className="text-[11px] font-bold text-white/25 uppercase tracking-widest">
-                            {new Date(sale.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {new Date(sale.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' })}
                           </span>
                           <div className="flex items-center gap-3">
                             <span className="font-black text-white text-base">₹{sale.totalAmount.toFixed(2)}</span>

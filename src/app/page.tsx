@@ -57,7 +57,7 @@ export default async function DashboardPage() {
                     <div className="flex items-center gap-2 text-white/30 text-xs font-bold">
                       <Clock className="w-3 h-3" />
                       <span className="uppercase tracking-wider">
-                        {new Date(sale.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {new Date(sale.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' })}
                       </span>
                     </div>
                     <span className="font-black text-white text-lg">
