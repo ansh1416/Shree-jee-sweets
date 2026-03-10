@@ -122,7 +122,7 @@ export default function POSClient({ products }: { products: Product[] }) {
             className={`relative p-5 rounded-3xl transition-all duration-300 flex flex-col items-start justify-between min-h-[120px] overflow-hidden ${
               selectedProduct?.id === product.id
                 ? 'bg-gradient-to-br from-orange-500 to-red-500 shadow-xl shadow-orange-500/30 scale-[0.98]'
-                : 'bg-white shadow-[0_2px_10px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-gray-50/50'
+                : 'bg-gradient-to-br from-orange-50 to-orange-100/50 shadow-[0_4px_15px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgba(249,115,22,0.12)] hover:-translate-y-0.5 border border-orange-200/60'
             }`}
           >
             {/* Background pattern for active state */}
