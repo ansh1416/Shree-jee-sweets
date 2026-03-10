@@ -40,11 +40,6 @@ export default async function HistoryPage({
             <Link
               key={opt.value}
               href={`/history?days=${opt.value}`}
-              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                days === opt.value
-                  ? 'bg-white text-orange-600 shadow-sm'
-                  : 'text-gray-500 hover:text-gray-700'
-              }`}
             >
               {opt.label}
             </Link>
@@ -60,8 +55,6 @@ export default async function HistoryPage({
       ) : (
         <div className="space-y-4">
           {Object.entries(grouped).map(([date, daySales]) => {
-            const dayTotal = daySales.reduce((sum, s) => sum + s.totalAmount, 0)
-            const dayProfit = daySales.reduce((sum, s) => sum + s.totalProfit, 0)
 
             return (
               <div key={date} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
