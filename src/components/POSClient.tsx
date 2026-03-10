@@ -18,7 +18,8 @@ const PRESET_QUANTITIES = [
   { label: '100g', value: 100, type: 'kg' },
   { label: '250g', value: 250, type: 'kg' },
   { label: '500g', value: 500, type: 'kg' },
-  { label: '1 KG', value: 1000, type: 'kg' },
+  { label: '1 KG', value: 1, type: 'kg_actual' },
+  { label: '5 KG', value: 5, type: 'kg_actual' },
   { label: '1 Pc', value: 1, type: 'piece' },
   { label: '5 Pc', value: 5, type: 'piece' },
   { label: '1 Bowl', value: 1, type: 'bowl' },
@@ -27,7 +28,7 @@ const PRESET_QUANTITIES = [
 export default function POSClient({ products }: { products: Product[] }) {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [quantity, setQuantity] = useState<number | ''>('')
-  const [unitType, setUnitType] = useState<'kg' | 'piece' | 'bowl'>('kg')
+  const [unitType, setUnitType] = useState<'kg' | 'kg_actual' | 'piece' | 'bowl'>('kg')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [toast, setToast] = useState<{ amount: number } | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
@@ -37,9 +38,11 @@ export default function POSClient({ products }: { products: Product[] }) {
   let currentProfit = 0
 
   if (selectedProduct && typeof quantity === 'number') {
-    if (unitType === 'kg' && selectedProduct.pricePerKg) {
-      currentAmount = (selectedProduct.pricePerKg / 1000) * quantity
-      const costAmount = (selectedProduct.costPrice / 1000) * quantity
+    if ((unitType === 'kg' || unitType === 'kg_actual') && selectedProduct.pricePerKg) {
+      // If user selected KG toggle, multiply quantity by 1000 so the math is always in grams internally
+      const effectiveGrams = unitType === 'kg_actual' ? quantity * 1000 : quantity
+      currentAmount = (selectedProduct.pricePerKg / 1000) * effectiveGrams
+      const costAmount = (selectedProduct.costPrice / 1000) * effectiveGrams
       currentProfit = currentAmount - costAmount
     } else if (unitType === 'piece' && selectedProduct.pricePerPiece) {
       currentAmount = selectedProduct.pricePerPiece * quantity
@@ -185,23 +188,47 @@ export default function POSClient({ products }: { products: Product[] }) {
             </div>
 
             {/* Custom Input */}
-            <div className="flex gap-2">
-              <input
-                type="number"
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value ? Number(e.target.value) : '')}
-                placeholder="Custom Amount"
-                className="flex-1 bg-gray-50 border border-gray-200 px-4 py-3 rounded-xl text-lg font-bold focus:ring-2 focus:ring-orange-500 outline-none"
-              />
-              <select
-                value={unitType}
-                onChange={(e) => setUnitType(e.target.value as 'kg' | 'piece' | 'bowl')}
-                className="w-24 bg-gray-50 border border-gray-200 px-2 py-3 rounded-xl font-bold focus:ring-2 focus:ring-orange-500 outline-none"
-              >
-                {selectedProduct.pricePerKg && <option value="kg">Grams</option>}
-                {selectedProduct.pricePerPiece && <option value="piece">Pieces</option>}
-                {selectedProduct.pricePerBowl && <option value="bowl">Bowls</option>}
-              </select>
+            <div className="space-y-3 bg-gray-50/50 p-4 rounded-2xl border border-gray-100">
+              <div className="flex justify-between items-center">
+                <label className="text-sm font-bold text-gray-700">Enter Amount</label>
+                {selectedProduct.pricePerKg && (
+                  <div className="flex bg-gray-200/80 p-1 rounded-lg">
+                    <button
+                      onClick={() => setUnitType('kg')}
+                      className={`px-3 py-1 rounded-md text-sm font-bold transition-all ${unitType === 'kg' ? 'bg-white shadow-sm text-orange-600' : 'text-gray-500'}`}
+                    >
+                      Grams
+                    </button>
+                    <button
+                      onClick={() => {
+                        setUnitType('kg')
+                        // If they switch to KG, convert grams to kg visually (e.g., 500g -> 0.5kg)
+                        // This logic is mostly for UI clarity, but our backend handles pricePerKg which expects Grams by default in the current logic.
+                        // Wait, the current logic treats 'kg' unitType as GRAMS (e.g. 500 * price/1000). 
+                        // So let's rename the UI toggles.
+                      }}
+                      className={`px-3 py-1 rounded-md text-sm font-bold transition-all ${unitType === 'kg_actual' as any ? 'bg-white shadow-sm text-orange-600' : 'text-gray-500'}`}
+                    >
+                      KG
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <input
+                    type="number"
+                    value={quantity}
+                    onChange={(e) => setQuantity(e.target.value ? Number(e.target.value) : '')}
+                    placeholder="0"
+                    className="w-full bg-white border-2 border-orange-100 text-gray-900 px-4 py-4 rounded-xl text-2xl font-black focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all placeholder:text-gray-300 shadow-inner"
+                  />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">
+                    {unitType === 'piece' ? 'pc' : unitType === 'bowl' ? 'bowl' : 'g'}
+                  </span>
+                </div>
+              </div>
             </div>
 
             {/* Submit */}
