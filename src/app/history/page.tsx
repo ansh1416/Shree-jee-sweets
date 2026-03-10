@@ -94,7 +94,7 @@ export default async function HistoryPage({
                       </div>
 
                       <div className="bg-orange-50/70 rounded-xl p-3 border border-orange-100/50 space-y-1.5">
-                        {sale.items.map((item) => (
+                        {sale.items.map((item: any) => (
                           <div key={item.id} className="flex justify-between items-center text-sm">
                             <span className="font-medium text-gray-800 flex items-center gap-2">
                               <span className="w-1.5 h-1.5 rounded-full bg-orange-400 shrink-0" />
