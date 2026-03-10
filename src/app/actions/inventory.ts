@@ -21,6 +21,7 @@ export async function getInventoryWithProducts() {
     },
   })
 
+  return products.map((p: any) => ({
     id: p.id,
     name: p.name,
     category: p.category,
