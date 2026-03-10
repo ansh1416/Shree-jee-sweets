@@ -78,6 +78,7 @@ export default async function HistoryPage({
 
                 {/* Sales in day */}
                 <div className="divide-y divide-gray-50">
+                  {daySales.map((sale: any) => (
                     <div key={sale.id} className="p-4 hover:bg-gray-50 transition-colors">
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-xs font-semibold text-gray-400 bg-gray-100 px-2 py-0.5 rounded">
