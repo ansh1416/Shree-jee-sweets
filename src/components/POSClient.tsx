@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { createSale } from '@/app/actions/sale'
-import { CheckCircle2, Search, X } from 'lucide-react'
+import { CheckCircle2, Search, X, IndianRupee, Weight } from 'lucide-react'
 
 type Product = {
   id: string
@@ -13,7 +13,6 @@ type Product = {
   category: string
 }
 
-// 1 bowl = 100g
 const BOWL_IN_GRAMS = 100
 
 const PRESET_QUANTITIES = [
@@ -27,49 +26,76 @@ const PRESET_QUANTITIES = [
   { label: '2 Bowl', value: 2, type: 'bowl' },
 ]
 
+type InputMode = 'quantity' | 'amount'
+
 export default function POSClient({ products }: { products: Product[] }) {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [quantity, setQuantity] = useState<number | ''>('')
-  // 'g' = grams directly, 'kg' = user types KG, 'bowl' = bowls
   const [unitType, setUnitType] = useState<'g' | 'kg' | 'bowl'>('g')
+  const [inputMode, setInputMode] = useState<InputMode>('quantity')
+  // For "by amount" mode — user types rupees
+  const [rupeesInput, setRupeesInput] = useState<number | ''>('')
   const [toast, setToast] = useState<{ amount: number } | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
 
-  // Compute the amount to charge
-  let currentAmount = 0
-  if (selectedProduct && typeof quantity === 'number') {
-    if (unitType === 'bowl' && selectedProduct.pricePerBowl) {
-      currentAmount = selectedProduct.pricePerBowl * quantity
-    } else if (selectedProduct.pricePerKg) {
-      const grams = unitType === 'kg' ? quantity * 1000 : quantity
-      currentAmount = (selectedProduct.pricePerKg / 1000) * grams
-    }
-  }
-
-  // Always store quantity in GRAMS
+  // ── Quantity mode calculations ──────────────────────────────────────────
   const computeStoredGrams = (): number => {
     if (typeof quantity !== 'number') return 0
     if (unitType === 'kg') return quantity * 1000
     if (unitType === 'bowl') return quantity * BOWL_IN_GRAMS
-    return quantity // already grams
+    return quantity
   }
 
+  let quantityModeAmount = 0
+  if (selectedProduct && typeof quantity === 'number') {
+    if (unitType === 'bowl' && selectedProduct.pricePerBowl) {
+      quantityModeAmount = selectedProduct.pricePerBowl * quantity
+    } else if (selectedProduct.pricePerKg) {
+      const grams = unitType === 'kg' ? quantity * 1000 : quantity
+      quantityModeAmount = (selectedProduct.pricePerKg / 1000) * grams
+    }
+  }
+
+  // ── Amount mode calculations ─────────────────────────────────────────────
+  // How many grams does the typed ₹ amount buy?
+  const computeAmountModeGrams = (): number => {
+    if (!selectedProduct?.pricePerKg || typeof rupeesInput !== 'number' || rupeesInput <= 0) return 0
+    return (rupeesInput / selectedProduct.pricePerKg) * 1000
+  }
+
+  const amountModeGrams = computeAmountModeGrams()
+  const amountModeDisplay =
+    amountModeGrams >= 1000
+      ? `${(amountModeGrams / 1000).toFixed(amountModeGrams % 1000 === 0 ? 0 : 2)} KG`
+      : amountModeGrams > 0
+      ? `${amountModeGrams.toFixed(0)}g`
+      : '—'
+
+  // ── Unified values for sale submission ───────────────────────────────────
+  const finalAmount = inputMode === 'amount' ? (typeof rupeesInput === 'number' ? rupeesInput : 0) : quantityModeAmount
+  const finalGrams  = inputMode === 'amount' ? amountModeGrams : computeStoredGrams()
+  const canSubmit   = inputMode === 'amount'
+    ? typeof rupeesInput === 'number' && rupeesInput > 0 && amountModeGrams > 0
+    : typeof quantity === 'number' && quantity > 0
+
+  // ── Submit ───────────────────────────────────────────────────────────────
   const handleSale = async () => {
-    if (!selectedProduct || typeof quantity !== 'number' || quantity <= 0) return
+    if (!selectedProduct || !canSubmit) return
 
     const product = selectedProduct
-    const amount = currentAmount
-    const storedGrams = computeStoredGrams()
+    const amount = finalAmount
+    const grams = finalGrams
 
-    // Optimistic: reset UI immediately
+    // Optimistic reset
     setSelectedProduct(null)
     setQuantity('')
+    setRupeesInput('')
+    setInputMode('quantity')
     setToast({ amount })
     setTimeout(() => setToast(null), 3000)
 
-    // Fire to server in background
     createSale({
-      items: [{ productId: product.id, quantity: storedGrams, amount, profit: 0 }],
+      items: [{ productId: product.id, quantity: grams, amount, profit: 0 }],
       totalAmount: amount,
       totalProfit: 0,
     }).catch(() => {
@@ -82,7 +108,6 @@ export default function POSClient({ products }: { products: Product[] }) {
     p.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  // Format input display unit label
   const unitLabel = unitType === 'kg' ? 'KG' : unitType === 'bowl' ? 'bowl' : 'g'
 
   return (
@@ -118,10 +143,11 @@ export default function POSClient({ products }: { products: Product[] }) {
             key={product.id}
             onClick={() => {
               setSelectedProduct(product)
-              // Default to g for kg products, bowl for bowl-only products
               if (product.pricePerKg) setUnitType('g')
               else if (product.pricePerBowl) setUnitType('bowl')
               setQuantity('')
+              setRupeesInput('')
+              setInputMode('quantity')
             }}
             className={`relative p-4 rounded-2xl text-left flex flex-col justify-between min-h-[110px] overflow-hidden transition-all duration-200 ${
               selectedProduct?.id === product.id
@@ -161,7 +187,7 @@ export default function POSClient({ products }: { products: Product[] }) {
           />
           <div className="fixed bottom-0 left-0 right-0 max-w-lg mx-auto bg-[#13131e] border-t border-white/[0.07] rounded-t-[2.5rem] z-[70] animate-in slide-in-from-bottom-4 duration-300 pb-[88px] shadow-[0_-30px_60px_rgba(0,0,0,0.6)]">
             <div className="p-6 space-y-5">
-              
+
               {/* Header */}
               <div className="flex justify-between items-start">
                 <div>
@@ -176,91 +202,131 @@ export default function POSClient({ products }: { products: Product[] }) {
                 </button>
               </div>
 
-              {/* Presets */}
-              <div className="grid grid-cols-4 gap-2">
-                {PRESET_QUANTITIES.filter((p) => {
-                  if (p.type !== 'bowl' && !selectedProduct.pricePerKg) return false
-                  if (p.type === 'bowl' && !selectedProduct.pricePerBowl) return false
-                  return true
-                }).map((preset, idx) => (
+              {/* Mode switcher — only for kg products */}
+              {selectedProduct.pricePerKg && (
+                <div className="flex bg-white/[0.05] border border-white/[0.07] p-1 rounded-2xl gap-1">
                   <button
-                    key={idx}
-                    onClick={() => {
-                      setUnitType(preset.type === 'bowl' ? 'bowl' : 'g')
-                      setQuantity(preset.value)
-                    }}
-                    className={`py-2.5 rounded-xl font-bold text-sm transition-all ${
-                      quantity === preset.value && (
-                        (preset.type === 'bowl' && unitType === 'bowl') ||
-                        (preset.type === 'g' && unitType === 'g') ||
-                        (preset.type === 'g' && unitType === 'kg')
-                      )
-                        ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-[0_0_20px_rgba(249,115,22,0.3)]'
-                        : 'bg-white/[0.05] text-white/40 hover:bg-white/10 hover:text-white/70 border border-white/[0.05]'
+                    onClick={() => { setInputMode('quantity'); setRupeesInput('') }}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                      inputMode === 'quantity'
+                        ? 'bg-orange-500/20 text-orange-400 shadow-inner'
+                        : 'text-white/30 hover:text-white/60'
                     }`}
                   >
-                    {preset.label}
+                    <Weight className="w-3.5 h-3.5" />
+                    By Weight
                   </button>
-                ))}
-              </div>
+                  <button
+                    onClick={() => { setInputMode('amount'); setQuantity(''); setUnitType('g') }}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                      inputMode === 'amount'
+                        ? 'bg-orange-500/20 text-orange-400 shadow-inner'
+                        : 'text-white/30 hover:text-white/60'
+                    }`}
+                  >
+                    <IndianRupee className="w-3.5 h-3.5" />
+                    By Amount
+                  </button>
+                </div>
+              )}
 
-              {/* Input */}
-              <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-4">
-                <div className="flex justify-between items-center mb-3">
-                  <label className="text-xs font-bold text-white/30 uppercase tracking-widest">Amount</label>
-                  {selectedProduct.pricePerKg && (
-                    <div className="flex bg-white/[0.07] p-1 rounded-xl">
+              {/* ── BY WEIGHT MODE ── */}
+              {inputMode === 'quantity' && (
+                <>
+                  {/* Presets */}
+                  <div className="grid grid-cols-4 gap-2">
+                    {PRESET_QUANTITIES.filter((p) => {
+                      if (p.type !== 'bowl' && !selectedProduct.pricePerKg) return false
+                      if (p.type === 'bowl' && !selectedProduct.pricePerBowl) return false
+                      return true
+                    }).map((preset, idx) => (
                       <button
-                        onClick={() => setUnitType('g')}
-                        className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${unitType === 'g' ? 'bg-orange-500/20 text-orange-400' : 'text-white/30 hover:text-white/50'}`}
+                        key={idx}
+                        onClick={() => {
+                          setUnitType(preset.type === 'bowl' ? 'bowl' : 'g')
+                          setQuantity(preset.value)
+                        }}
+                        className={`py-2.5 rounded-xl font-bold text-sm transition-all ${
+                          quantity === preset.value &&
+                          ((preset.type === 'bowl' && unitType === 'bowl') || preset.type === 'g')
+                            ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-[0_0_20px_rgba(249,115,22,0.3)]'
+                            : 'bg-white/[0.05] text-white/40 hover:bg-white/10 hover:text-white/70 border border-white/[0.05]'
+                        }`}
                       >
-                        Grams
+                        {preset.label}
                       </button>
-                      <button
-                        onClick={() => setUnitType('kg')}
-                        className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${unitType === 'kg' ? 'bg-orange-500/20 text-orange-400' : 'text-white/30 hover:text-white/50'}`}
-                      >
-                        KG
-                      </button>
-                      {selectedProduct.pricePerBowl && (
-                        <button
-                          onClick={() => setUnitType('bowl')}
-                          className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${unitType === 'bowl' ? 'bg-orange-500/20 text-orange-400' : 'text-white/30 hover:text-white/50'}`}
-                        >
-                          Bowl
-                        </button>
+                    ))}
+                  </div>
+
+                  {/* Input */}
+                  <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-4">
+                    <div className="flex justify-between items-center mb-3">
+                      <label className="text-xs font-bold text-white/30 uppercase tracking-widest">Quantity</label>
+                      {selectedProduct.pricePerKg && (
+                        <div className="flex bg-white/[0.07] p-1 rounded-xl">
+                          <button onClick={() => setUnitType('g')} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${unitType === 'g' ? 'bg-orange-500/20 text-orange-400' : 'text-white/30 hover:text-white/50'}`}>Grams</button>
+                          <button onClick={() => setUnitType('kg')} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${unitType === 'kg' ? 'bg-orange-500/20 text-orange-400' : 'text-white/30 hover:text-white/50'}`}>KG</button>
+                          {selectedProduct.pricePerBowl && (
+                            <button onClick={() => setUnitType('bowl')} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${unitType === 'bowl' ? 'bg-orange-500/20 text-orange-400' : 'text-white/30 hover:text-white/50'}`}>Bowl</button>
+                          )}
+                        </div>
                       )}
                     </div>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        value={quantity}
+                        onChange={(e) => setQuantity(e.target.value ? Number(e.target.value) : '')}
+                        placeholder="0"
+                        className="w-full bg-transparent border-none text-[48px] font-black text-white focus:outline-none placeholder:text-white/10 py-2"
+                      />
+                      <span className="absolute right-0 top-1/2 -translate-y-1/2 text-white/20 font-bold text-2xl">{unitLabel}</span>
+                    </div>
+                    {typeof quantity === 'number' && quantity > 0 && (() => {
+                      const g = computeStoredGrams()
+                      const display = g >= 1000 ? `${(g / 1000).toFixed(g % 1000 === 0 ? 0 : 2)} KG` : `${g}g`
+                      return <p className="text-orange-400/50 text-xs font-bold mt-1">= {display}</p>
+                    })()}
+                  </div>
+                </>
+              )}
+
+              {/* ── BY AMOUNT MODE ── */}
+              {inputMode === 'amount' && selectedProduct.pricePerKg && (
+                <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-4">
+                  <label className="text-xs font-bold text-white/30 uppercase tracking-widest mb-3 block">Enter Amount (₹)</label>
+                  <div className="relative">
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 text-white/20 font-black text-3xl">₹</span>
+                    <input
+                      type="number"
+                      value={rupeesInput}
+                      onChange={(e) => setRupeesInput(e.target.value ? Number(e.target.value) : '')}
+                      placeholder="0"
+                      className="w-full bg-transparent border-none text-[48px] font-black text-white focus:outline-none placeholder:text-white/10 py-2 pl-10"
+                    />
+                  </div>
+
+                  {/* Weight result */}
+                  {typeof rupeesInput === 'number' && rupeesInput > 0 && (
+                    <div className="mt-3 bg-orange-500/10 border border-orange-500/20 rounded-xl px-4 py-3 flex items-center justify-between">
+                      <span className="text-xs font-bold text-orange-400/70 uppercase tracking-widest">You get</span>
+                      <span className="text-2xl font-black text-orange-400">{amountModeDisplay}</span>
+                    </div>
                   )}
-                </div>
-                <div className="relative">
-                  <input
-                    type="number"
-                    value={quantity}
-                    onChange={(e) => setQuantity(e.target.value ? Number(e.target.value) : '')}
-                    placeholder="0"
-                    className="w-full bg-transparent border-none text-[48px] font-black text-white focus:outline-none placeholder:text-white/10 py-2"
-                  />
-                  <span className="absolute right-0 top-1/2 -translate-y-1/2 text-white/20 font-bold text-2xl">
-                    {unitLabel}
-                  </span>
-                </div>
-                {/* Show stored grams preview */}
-                {typeof quantity === 'number' && quantity > 0 && (
-                  <p className="text-white/20 text-xs font-bold mt-1">
-                    = {computeStoredGrams()}g stored
+                  <p className="text-white/20 text-[11px] font-semibold mt-2">
+                    @ ₹{selectedProduct.pricePerKg}/kg
                   </p>
-                )}
-              </div>
+                </div>
+              )}
 
               {/* Submit */}
               <button
                 onClick={handleSale}
-                disabled={!quantity}
+                disabled={!canSubmit}
                 className="w-full bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-400 hover:to-red-500 active:scale-[0.98] text-white font-black py-4 rounded-2xl flex justify-between items-center px-5 shadow-[0_0_30px_rgba(249,115,22,0.3)] transition-all disabled:opacity-30 disabled:pointer-events-none"
               >
                 <span className="text-lg tracking-wide">Complete Sale</span>
-                <span className="text-xl font-black text-white/80">₹{currentAmount.toFixed(2)}</span>
+                <span className="text-xl font-black text-white/80">₹{finalAmount.toFixed(2)}</span>
               </button>
 
             </div>
