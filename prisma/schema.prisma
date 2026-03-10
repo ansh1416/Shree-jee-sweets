@@ -1,0 +1,56 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider  = "sqlite"
+  url       = env("DATABASE_URL")
+}
+
+model User {
+  id       String @id @default(cuid())
+  username String @unique
+  password String
+  role     String @default("user") // admin, user
+}
+
+model Product {
+  id              String      @id @default(cuid())
+  name            String
+  pricePerKg      Float?
+  pricePerPiece   Float?
+  pricePerBowl    Float?
+  costPrice       Float
+  category        String      // Sweet or Snack
+  inventoryStocks Inventory[]
+  saleItems       SaleItem[]
+}
+
+model Sale {
+  id          String     @id @default(cuid())
+  createdAt   DateTime   @default(now())
+  totalAmount Float
+  totalProfit Float
+  items       SaleItem[]
+}
+
+model SaleItem {
+  id        String   @id @default(cuid())
+  saleId    String
+  productId String
+  quantity  Float    // in grams or pieces
+  amount    Float
+  profit    Float
+  sale      Sale     @relation(fields: [saleId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+}
+
+model Inventory {
+  id        String   @id @default(cuid())
+  productId String
+  date      DateTime @default(now()) // To track daily morning stock
+  morningStock Float // Stock entered in the morning
+  currentStock Float // Remaining stock
+  product   Product  @relation(fields: [productId], references: [id])
+}
