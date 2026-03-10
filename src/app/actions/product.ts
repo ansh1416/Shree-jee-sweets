@@ -38,6 +38,43 @@ export async function addProduct(
   }
 }
 
+export async function updateProduct(
+  prevState: { error?: string; success?: boolean },
+  formData: FormData
+): Promise<{ error?: string; success?: boolean }> {
+  const id = formData.get('id') as string
+  const name = formData.get('name') as string
+  const category = formData.get('category') as string
+  const costPrice = parseFloat(formData.get('costPrice') as string)
+
+  const pricePerKgStr = formData.get('pricePerKg') as string
+  const pricePerPieceStr = formData.get('pricePerPiece') as string
+  const pricePerBowlStr = formData.get('pricePerBowl') as string
+
+  if (!id || !name || isNaN(costPrice) || (!pricePerKgStr && !pricePerPieceStr && !pricePerBowlStr)) {
+    return { error: 'Please provide name, cost price, and at least one selling price.', success: false }
+  }
+
+  try {
+    await prisma.product.update({
+      where: { id },
+      data: {
+        name,
+        category,
+        costPrice,
+        pricePerKg: pricePerKgStr ? parseFloat(pricePerKgStr) : null,
+        pricePerPiece: pricePerPieceStr ? parseFloat(pricePerPieceStr) : null,
+        pricePerBowl: pricePerBowlStr ? parseFloat(pricePerBowlStr) : null,
+      },
+    })
+
+    revalidatePath('/admin')
+    return { success: true }
+  } catch (e) {
+    return { error: 'Failed to update product', success: false }
+  }
+}
+
 export async function deleteProduct(id: string) {
   try {
     await prisma.product.delete({

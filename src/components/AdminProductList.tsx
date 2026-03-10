@@ -1,8 +1,9 @@
 'use client'
 
-import { Trash2 } from 'lucide-react'
+import { Pencil, Trash2 } from 'lucide-react'
 import { deleteProduct } from '@/app/actions/product'
 import { useState } from 'react'
+import Link from 'next/link'
 
 export default function AdminProductList({ products }: { products: any[] }) {
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -40,16 +41,27 @@ export default function AdminProductList({ products }: { products: any[] }) {
             </div>
           </div>
 
-          <button
-            onClick={() => handleDelete(product.id, product.name)}
-            disabled={deletingId === product.id}
-            className={`p-3 text-red-500 hover:bg-red-50 rounded-xl transition-colors ${deletingId === product.id ? 'opacity-50 cursor-not-allowed' : ''}`}
-            title="Delete Product"
-          >
-            <Trash2 className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-1">
+            <Link
+              href={`/admin/edit/${product.id}`}
+              className="p-3 text-orange-500 hover:bg-orange-50 rounded-xl transition-colors"
+              title="Edit Product"
+            >
+              <Pencil className="w-5 h-5" />
+            </Link>
+
+            <button
+              onClick={() => handleDelete(product.id, product.name)}
+              disabled={deletingId === product.id}
+              className={`p-3 text-red-500 hover:bg-red-50 rounded-xl transition-colors ${deletingId === product.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+              title="Delete Product"
+            >
+              <Trash2 className="w-5 h-5" />
+            </button>
+          </div>
         </div>
       ))}
     </div>
   )
 }
+
