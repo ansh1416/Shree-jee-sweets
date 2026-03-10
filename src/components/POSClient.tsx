@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { createSale } from '@/app/actions/sale'
-import { Tag, CheckCircle2 } from 'lucide-react'
+import { CheckCircle2, Search, X } from 'lucide-react'
 
 type Product = {
   id: string
@@ -33,9 +33,7 @@ export default function POSClient({ products }: { products: Product[] }) {
   const [toast, setToast] = useState<{ amount: number } | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
 
-  // Calculate current amount (Removed Profit Tracking)
   let currentAmount = 0
-  
   if (selectedProduct && typeof quantity === 'number') {
     if ((unitType === 'kg' || unitType === 'kg_actual') && selectedProduct.pricePerKg) {
       const effectiveGrams = unitType === 'kg_actual' ? quantity * 1000 : quantity
@@ -49,24 +47,15 @@ export default function POSClient({ products }: { products: Product[] }) {
 
   const handleSale = async () => {
     if (!selectedProduct || typeof quantity !== 'number' || quantity <= 0) return
-
     setIsSubmitting(true)
-
     try {
       await createSale({
-        items: [{
-          productId: selectedProduct.id,
-          quantity,
-          amount: currentAmount,
-          profit: 0, // Hardcoded to 0 to bypass profit tracking but satisfy DB schema
-        }],
+        items: [{ productId: selectedProduct.id, quantity, amount: currentAmount, profit: 0 }],
         totalAmount: currentAmount,
-        totalProfit: 0, // Hardcoded to 0
+        totalProfit: 0,
       })
-
       setToast({ amount: currentAmount })
       setTimeout(() => setToast(null), 3000)
-
       setSelectedProduct(null)
       setQuantity('')
     } catch {
@@ -81,34 +70,33 @@ export default function POSClient({ products }: { products: Product[] }) {
   )
 
   return (
-    <div className="space-y-6 pb-24">
-      {/* Premium Toast */}
+    <div className="space-y-4 pb-4">
+      {/* Toast */}
       {toast && (
-        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-gray-900 text-white pl-4 pr-6 py-3 rounded-full shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5)] flex items-center gap-3 animate-in fade-in slide-in-from-top-5 duration-300">
-          <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center">
-            <CheckCircle2 className="w-5 h-5 text-white" />
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-[100] bg-[#13131e] text-white border border-emerald-500/30 px-5 py-3 rounded-full shadow-[0_0_40px_rgba(34,197,94,0.2)] flex items-center gap-3 animate-in fade-in slide-in-from-top-3 duration-300">
+          <div className="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center">
+            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
           </div>
-          <span className="font-bold tracking-wide">₹{toast.amount.toFixed(2)} Sale Recorded</span>
+          <span className="font-bold text-sm tracking-wide">₹{toast.amount.toFixed(2)} <span className="text-white/40">Sale Recorded</span></span>
         </div>
       )}
 
-      {/* Modern Search */}
+      {/* Search */}
       {products.length > 6 && (
-        <div className="px-4">
-          <div className="relative">
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search products..."
-              className="w-full px-5 py-4 bg-white border-none rounded-2xl focus:ring-4 focus:ring-orange-500/10 outline-none text-[15px] font-medium shadow-[0_2px_10px_rgb(0,0,0,0.06)] placeholder:text-gray-400 transition-all"
-            />
-          </div>
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search products..."
+            className="w-full pl-11 pr-4 py-3.5 bg-white/5 border border-white/[0.07] rounded-2xl text-white/80 font-medium placeholder:text-white/20 focus:outline-none focus:border-orange-500/40 focus:bg-white/[0.07] transition-all text-sm"
+          />
         </div>
       )}
 
-      {/* Premium Product Grid */}
-      <div className="grid grid-cols-2 gap-3 px-4">
+      {/* Product Grid */}
+      <div className="grid grid-cols-2 gap-2.5">
         {filtered.map((product) => (
           <button
             key={product.id}
@@ -119,25 +107,22 @@ export default function POSClient({ products }: { products: Product[] }) {
               else if (product.pricePerBowl) setUnitType('bowl')
               setQuantity('')
             }}
-            className={`relative p-5 rounded-3xl transition-all duration-300 flex flex-col items-start justify-between min-h-[120px] overflow-hidden ${
+            className={`relative p-4 rounded-2xl text-left flex flex-col justify-between min-h-[110px] overflow-hidden transition-all duration-200 ${
               selectedProduct?.id === product.id
-                ? 'bg-gradient-to-br from-orange-500 to-red-500 shadow-xl shadow-orange-500/30 scale-[0.98]'
-                : 'bg-gradient-to-br from-orange-50 to-orange-100/50 shadow-[0_4px_15px_rgb(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgba(249,115,22,0.12)] hover:-translate-y-0.5 border border-orange-200/60'
+                ? 'bg-gradient-to-br from-orange-500 to-red-600 shadow-[0_0_30px_rgba(249,115,22,0.35)] scale-[0.97]'
+                : 'bg-[#1a1a26] hover:bg-[#1f1f30] border border-white/[0.06] hover:border-orange-500/20 hover:-translate-y-0.5'
             }`}
           >
-            {/* Background pattern for active state */}
             {selectedProduct?.id === product.id && (
-              <div className="absolute -top-10 -right-10 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
+              <div className="absolute -top-6 -right-6 w-20 h-20 bg-white/10 rounded-full blur-xl" />
             )}
-
-            <span className={`font-extrabold text-[15px] leading-tight text-left z-10 ${selectedProduct?.id === product.id ? 'text-white' : 'text-gray-800'}`}>
+            <span className={`font-bold text-sm leading-snug z-10 ${selectedProduct?.id === product.id ? 'text-white' : 'text-white/80'}`}>
               {product.name}
             </span>
-            
-            <span className={`text-xs font-bold px-3 py-1.5 rounded-xl mt-4 z-10 transition-colors ${
-              selectedProduct?.id === product.id 
-                ? 'bg-white/20 text-white backdrop-blur-sm' 
-                : 'bg-orange-50/80 text-orange-600'
+            <span className={`text-xs font-bold px-2.5 py-1 rounded-lg mt-3 z-10 self-start ${
+              selectedProduct?.id === product.id
+                ? 'bg-black/20 text-white/80'
+                : 'bg-orange-500/10 text-orange-400'
             }`}>
               {product.pricePerKg && `₹${product.pricePerKg}/kg`}
               {!product.pricePerKg && product.pricePerPiece && `₹${product.pricePerPiece}/pc`}
@@ -146,33 +131,37 @@ export default function POSClient({ products }: { products: Product[] }) {
           </button>
         ))}
         {filtered.length === 0 && (
-          <div className="col-span-2 py-12 text-center text-gray-400 text-sm font-medium">
+          <div className="col-span-2 py-12 text-center text-white/20 text-sm font-medium">
             No products match your search.
           </div>
         )}
       </div>
 
-      {/* Floating Action Drawer */}
+      {/* Floating Drawer */}
       {selectedProduct && (
         <>
-          <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[60] animate-in fade-in duration-200" onClick={() => setSelectedProduct(null)}></div>
-          <div className="fixed bottom-0 left-0 right-0 p-6 pb-[96px] bg-white rounded-t-[2.5rem] shadow-[0_-20px_40px_-15px_rgba(0,0,0,0.2)] z-[70] animate-in slide-in-from-bottom-5 duration-300">
-            <div className="max-w-md mx-auto space-y-6">
-
+          <div
+            className="fixed inset-0 bg-black/60 backdrop-blur-md z-[60] animate-in fade-in duration-200"
+            onClick={() => setSelectedProduct(null)}
+          />
+          <div className="fixed bottom-0 left-0 right-0 max-w-lg mx-auto bg-[#13131e] border-t border-white/[0.07] rounded-t-[2.5rem] z-[70] animate-in slide-in-from-bottom-4 duration-300 pb-[88px] shadow-[0_-30px_60px_rgba(0,0,0,0.6)]">
+            <div className="p-6 space-y-5">
+              
+              {/* Header */}
               <div className="flex justify-between items-start">
                 <div>
-                  <h3 className="text-2xl font-black text-gray-900 leading-tight">{selectedProduct.name}</h3>
-                  <p className="text-sm font-semibold tracking-wide text-orange-500 mt-1 uppercase">Configure Sale</p>
+                  <h3 className="text-xl font-black text-white">{selectedProduct.name}</h3>
+                  <p className="text-xs font-bold text-orange-500/80 uppercase tracking-widest mt-1">Configure Sale</p>
                 </div>
                 <button
                   onClick={() => setSelectedProduct(null)}
-                  className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center hover:bg-gray-200 text-gray-500 transition-colors focus:outline-none"
+                  className="w-9 h-9 bg-white/[0.06] rounded-full flex items-center justify-center text-white/40 hover:text-white/70 hover:bg-white/10 transition-all"
                 >
-                  <span className="text-xl leading-none -mt-0.5">×</span>
+                  <X className="w-4 h-4" />
                 </button>
               </div>
 
-              {/* Quick Presets */}
+              {/* Presets */}
               <div className="grid grid-cols-4 gap-2">
                 {PRESET_QUANTITIES.filter((p) => {
                   if (p.type.includes('kg') && !selectedProduct.pricePerKg) return false
@@ -186,10 +175,10 @@ export default function POSClient({ products }: { products: Product[] }) {
                       setUnitType(preset.type as any)
                       setQuantity(preset.value)
                     }}
-                    className={`py-3 rounded-2xl font-bold text-sm transition-all focus:outline-none ${
+                    className={`py-2.5 rounded-xl font-bold text-sm transition-all ${
                       quantity === preset.value && unitType === preset.type
-                        ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/30 scale-105'
-                        : 'bg-orange-50/80 text-orange-700 hover:bg-orange-100 border border-orange-200/50'
+                        ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-[0_0_20px_rgba(249,115,22,0.3)]'
+                        : 'bg-white/[0.05] text-white/40 hover:bg-white/10 hover:text-white/70 border border-white/[0.05]'
                     }`}
                   >
                     {preset.label}
@@ -197,52 +186,49 @@ export default function POSClient({ products }: { products: Product[] }) {
                 ))}
               </div>
 
-              {/* Premium Input */}
-              <div className="bg-orange-50/50 p-5 rounded-3xl border border-orange-100/50">
-                <div className="flex justify-between items-center mb-4">
-                  <label className="text-sm font-bold text-gray-500 uppercase tracking-wider">Amount</label>
+              {/* Input */}
+              <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-4">
+                <div className="flex justify-between items-center mb-3">
+                  <label className="text-xs font-bold text-white/30 uppercase tracking-widest">Amount</label>
                   {selectedProduct.pricePerKg && (
-                    <div className="flex bg-white shadow-sm p-1 rounded-xl">
+                    <div className="flex bg-white/[0.07] p-1 rounded-xl">
                       <button
                         onClick={() => setUnitType('kg')}
-                        className={`px-4 py-1.5 rounded-lg text-[13px] font-bold transition-all ${unitType === 'kg' ? 'bg-orange-100 text-orange-700' : 'text-gray-400 hover:text-gray-600'}`}
+                        className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${unitType === 'kg' ? 'bg-orange-500/20 text-orange-400' : 'text-white/30 hover:text-white/50'}`}
                       >
                         Grams
                       </button>
                       <button
                         onClick={() => setUnitType('kg_actual')}
-                        className={`px-4 py-1.5 rounded-lg text-[13px] font-bold transition-all ${unitType === 'kg_actual' ? 'bg-orange-100 text-orange-700' : 'text-gray-400 hover:text-gray-600'}`}
+                        className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${unitType === 'kg_actual' ? 'bg-orange-500/20 text-orange-400' : 'text-white/30 hover:text-white/50'}`}
                       >
                         KG
                       </button>
                     </div>
                   )}
                 </div>
-
                 <div className="relative">
                   <input
                     type="number"
                     value={quantity}
                     onChange={(e) => setQuantity(e.target.value ? Number(e.target.value) : '')}
                     placeholder="0"
-                    className="w-full bg-white border-none px-5 py-5 rounded-2xl text-[40px] leading-none font-black text-gray-900 focus:ring-4 focus:ring-orange-500/20 outline-none transition-all placeholder:text-gray-200 shadow-[0_2px_20px_rgb(0,0,0,0.04)]"
+                    className="w-full bg-transparent border-none text-[48px] font-black text-white focus:outline-none placeholder:text-white/10 py-2"
                   />
-                  <span className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-300 font-bold text-2xl">
+                  <span className="absolute right-0 top-1/2 -translate-y-1/2 text-white/20 font-bold text-2xl">
                     {unitType === 'piece' ? 'pc' : unitType === 'bowl' ? 'bowl' : unitType === 'kg_actual' ? 'KG' : 'g'}
                   </span>
                 </div>
               </div>
 
-              {/* Submit Button */}
+              {/* Submit */}
               <button
                 onClick={handleSale}
                 disabled={isSubmitting || !quantity}
-                className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 active:scale-[0.98] text-white p-5 rounded-2xl flex justify-between items-center shadow-[0_8px_30px_-10px_rgba(249,115,22,0.6)] transition-all disabled:opacity-50 disabled:active:scale-100 disable:cursor-not-allowed mt-4"
+                className="w-full bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-400 hover:to-red-500 active:scale-[0.98] text-white font-black py-4 rounded-2xl flex justify-between items-center px-5 shadow-[0_0_30px_rgba(249,115,22,0.3)] transition-all disabled:opacity-30 disabled:pointer-events-none"
               >
-                <span className="font-extrabold text-xl tracking-wide">{isSubmitting ? 'Processing...' : 'Complete Sale'}</span>
-                <div className="flex items-center gap-2 bg-white/20 backdrop-blur-md px-4 py-2 rounded-xl border border-white/20">
-                  <span className="font-black text-2xl">₹{currentAmount.toFixed(2)}</span>
-                </div>
+                <span className="text-lg tracking-wide">{isSubmitting ? 'Processing...' : 'Complete Sale'}</span>
+                <span className="text-xl font-black text-white/80">₹{currentAmount.toFixed(2)}</span>
               </button>
 
             </div>
