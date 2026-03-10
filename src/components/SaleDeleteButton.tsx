@@ -44,7 +44,7 @@ export default function SaleDeleteButton({ saleId }: { saleId: string }) {
   return (
     <button
       onClick={() => setShowConfirm(true)}
-      className="w-7 h-7 flex items-center justify-center rounded-lg text-white/[0.15] hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100"
+      className="w-7 h-7 flex items-center justify-center rounded-lg text-white/25 hover:text-red-400 hover:bg-red-500/10 transition-all"
       title="Delete sale"
     >
       <Trash2 className="w-3.5 h-3.5" />
