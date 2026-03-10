@@ -46,14 +46,12 @@ export default async function DashboardPage() {
         <div className="bg-gray-50 p-4 border-b border-gray-100">
           <h2 className="font-bold text-gray-800">Live Sales Feed</h2>
         </div>
-        
         <div className="divide-y divide-gray-50">
           {stats.recentSales.length === 0 ? (
             <div className="p-8 text-center text-gray-400">
               No sales recorded today yet.
             </div>
           ) : (
-            stats.recentSales.map((sale) => (
               <div key={sale.id} className="p-4 hover:bg-gray-50 transition-colors">
                 <div className="flex justify-between items-start mb-2">
                   <span className="text-xs font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded">
@@ -61,7 +59,6 @@ export default async function DashboardPage() {
                   </span>
                   <span className="font-bold text-green-600">₹{sale.totalAmount.toFixed(2)}</span>
                 </div>
-                
                 <div className="space-y-1">
                   {sale.items.map((item) => (
                     <div key={item.id} className="flex justify-between text-sm">
