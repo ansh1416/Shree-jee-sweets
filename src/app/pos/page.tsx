@@ -1,5 +1,8 @@
+export const dynamic = 'force-dynamic'
+
 import POSClient from '@/components/POSClient'
 import { getProducts } from '@/app/actions/product'
+
 
 export default async function POSPage() {
   const products = await getProducts()
