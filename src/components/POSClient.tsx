@@ -49,8 +49,11 @@ export default function POSClient({ products }: { products: Product[] }) {
     if (!selectedProduct || typeof quantity !== 'number' || quantity <= 0) return
     setIsSubmitting(true)
     try {
+      // Normalize: always store grams for kg-based products
+      const storedQuantity = unitType === 'kg_actual' ? quantity * 1000 : quantity
+
       await createSale({
-        items: [{ productId: selectedProduct.id, quantity, amount: currentAmount, profit: 0 }],
+        items: [{ productId: selectedProduct.id, quantity: storedQuantity, amount: currentAmount, profit: 0 }],
         totalAmount: currentAmount,
         totalProfit: 0,
       })
@@ -64,6 +67,7 @@ export default function POSClient({ products }: { products: Product[] }) {
       setIsSubmitting(false)
     }
   }
+
 
   const filtered = products.filter((p) =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase())
