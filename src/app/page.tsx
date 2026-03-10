@@ -63,7 +63,7 @@ export default async function DashboardPage() {
                 </div>
 
                 <div className="space-y-1">
-                  {sale.items.map((item) => (
+                  {sale.items.map((item: any) => (
                     <div key={item.id} className="flex justify-between text-sm">
                       <span className="text-gray-700">
                         {item.product.name}
