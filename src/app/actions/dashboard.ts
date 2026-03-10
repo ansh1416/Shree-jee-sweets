@@ -15,7 +15,6 @@ export async function getDashboardStats() {
     },
     _sum: {
       totalAmount: true,
-      totalProfit: true,
     },
   })
 
@@ -83,7 +82,6 @@ export async function getDashboardStats() {
 
   return {
     totalSales: todaySales._sum.totalAmount || 0,
-    totalProfit: todaySales._sum.totalProfit || 0,
     totalItems: todayItems._sum.quantity || 0,
     topProduct: topProduct?.name || 'No Sales Yet',
     recentSales,

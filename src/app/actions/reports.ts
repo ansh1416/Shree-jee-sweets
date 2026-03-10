@@ -14,12 +14,12 @@ export async function getReportsData() {
   })
 
   // Build daily buckets for last 7 days
-  const dailyMap: Record<string, { revenue: number; profit: number }> = {}
+  const dailyMap: Record<string, { revenue: number }> = {}
   for (let i = 6; i >= 0; i--) {
     const d = new Date()
     d.setDate(d.getDate() - i)
     const key = d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })
-    dailyMap[key] = { revenue: 0, profit: 0 }
+    dailyMap[key] = { revenue: 0 }
   }
 
   for (const sale of sales) {
@@ -29,7 +29,6 @@ export async function getReportsData() {
     })
     if (dailyMap[key]) {
       dailyMap[key].revenue += sale.totalAmount
-      dailyMap[key].profit += sale.totalProfit
     }
   }
 
@@ -58,7 +57,7 @@ export async function getReportsData() {
   // Weekly totals
   const weekTotal = await prisma.sale.aggregate({
     where: { createdAt: { gte: sevenDaysAgo } },
-    _sum: { totalAmount: true, totalProfit: true },
+    _sum: { totalAmount: true },
     _count: true,
   })
 
@@ -69,7 +68,7 @@ export async function getReportsData() {
 
   const monthTotal = await prisma.sale.aggregate({
     where: { createdAt: { gte: monthStart } },
-    _sum: { totalAmount: true, totalProfit: true },
+    _sum: { totalAmount: true },
     _count: true,
   })
 
@@ -78,12 +77,10 @@ export async function getReportsData() {
     topProducts,
     week: {
       revenue: weekTotal._sum.totalAmount ?? 0,
-      profit: weekTotal._sum.totalProfit ?? 0,
       count: weekTotal._count,
     },
     month: {
       revenue: monthTotal._sum.totalAmount ?? 0,
-      profit: monthTotal._sum.totalProfit ?? 0,
       count: monthTotal._count,
     },
   }
