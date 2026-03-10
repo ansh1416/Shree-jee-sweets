@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { getInventoryWithProducts } from '@/app/actions/inventory'
 import InventoryClient from '@/components/InventoryClient'
 import { Package } from 'lucide-react'
