@@ -155,8 +155,8 @@ export default function POSClient({ products }: { products: Product[] }) {
       {/* Floating Action Drawer */}
       {selectedProduct && (
         <>
-          <div className="fixed inset-0 bg-gray-900/20 backdrop-blur-sm z-30 animate-in fade-in duration-200" onClick={() => setSelectedProduct(null)}></div>
-          <div className="fixed bottom-0 left-0 right-0 p-6 bg-white rounded-t-[2.5rem] shadow-[0_-20px_40px_-15px_rgba(0,0,0,0.1)] z-40 animate-in slide-in-from-bottom-5 duration-300 pb-safe">
+          <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[60] animate-in fade-in duration-200" onClick={() => setSelectedProduct(null)}></div>
+          <div className="fixed bottom-0 left-0 right-0 p-6 pb-[96px] bg-white rounded-t-[2.5rem] shadow-[0_-20px_40px_-15px_rgba(0,0,0,0.2)] z-[70] animate-in slide-in-from-bottom-5 duration-300">
             <div className="max-w-md mx-auto space-y-6">
 
               <div className="flex justify-between items-start">
@@ -188,8 +188,8 @@ export default function POSClient({ products }: { products: Product[] }) {
                     }}
                     className={`py-3 rounded-2xl font-bold text-sm transition-all focus:outline-none ${
                       quantity === preset.value && unitType === preset.type
-                        ? 'bg-gray-900 text-white shadow-lg shadow-gray-900/20 scale-105'
-                        : 'bg-gray-50 text-gray-500 hover:bg-gray-100'
+                        ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/30 scale-105'
+                        : 'bg-orange-50/80 text-orange-700 hover:bg-orange-100 border border-orange-200/50'
                     }`}
                   >
                     {preset.label}
