@@ -9,7 +9,6 @@ export default async function AdminProductsPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-800">Products</h2>
-        <Link 
           href="/admin/add"
           className="bg-orange-500 hover:bg-orange-600 text-white p-2 rounded-xl flex items-center gap-2 shadow-sm transition-colors"
         >
@@ -25,7 +24,6 @@ export default async function AdminProductsPage() {
               No products available. Click "Add New" to create one.
             </div>
           ) : (
-            products.map((product) => (
               <div key={product.id} className="p-4 flex justify-between items-center hover:bg-gray-50 transition-colors">
                 <div>
                   <h3 className="font-bold text-gray-800">{product.name}</h3>
@@ -39,13 +37,10 @@ export default async function AdminProductsPage() {
                     {product.pricePerBowl && `₹${product.pricePerBowl}/bowl `}
                   </div>
                 </div>
-                
                 <form action={async () => {
                   'use server'
                   await deleteProduct(product.id)
                 }}>
-                  <button 
-                    type="submit" 
                     className="p-3 text-red-500 hover:bg-red-50 rounded-xl transition-colors"
                     title="Delete Product"
                   >

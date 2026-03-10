@@ -103,18 +103,10 @@ export default function ReportsClient({
             <h3 className="font-bold text-gray-800">Top Products This Week</h3>
           </div>
           <div className="divide-y divide-gray-50">
-            {topProducts.map((p, i) => (
               <div key={p.name} className="p-4 flex items-center gap-3">
                 <span
-                  className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
-                    i === 0
                       ? 'bg-yellow-400 text-yellow-900'
                       : i === 1
-                      ? 'bg-gray-300 text-gray-700'
-                      : i === 2
-                      ? 'bg-orange-300 text-orange-900'
-                      : 'bg-gray-100 text-gray-500'
-                  }`}
                 >
                   {i + 1}
                 </span>
