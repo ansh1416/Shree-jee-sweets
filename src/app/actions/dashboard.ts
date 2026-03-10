@@ -18,17 +18,14 @@ export async function getDashboardStats() {
     },
   })
 
-  // 2. Total Items Sold Today
-  const todayItems = await prisma.saleItem.aggregate({
+  // 2. Total Items Sold Today (count transactions, not quantity)
+  const todayItems = await prisma.saleItem.count({
     where: {
       sale: {
         createdAt: {
           gte: today,
         },
       },
-    },
-    _sum: {
-      quantity: true,
     },
   })
 
@@ -82,7 +79,7 @@ export async function getDashboardStats() {
 
   return {
     totalSales: todaySales._sum.totalAmount || 0,
-    totalItems: todayItems._sum.quantity || 0,
+    totalItems: todayItems,
     topProduct: topProduct?.name || 'No Sales Yet',
     recentSales,
   }

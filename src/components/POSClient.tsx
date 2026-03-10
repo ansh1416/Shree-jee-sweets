@@ -8,72 +8,82 @@ type Product = {
   id: string
   name: string
   pricePerKg: number | null
-  pricePerPiece: number | null
   pricePerBowl: number | null
   costPrice: number
   category: string
 }
 
+// 1 bowl = 100g
+const BOWL_IN_GRAMS = 100
+
 const PRESET_QUANTITIES = [
-  { label: '100g', value: 100, type: 'kg' },
-  { label: '250g', value: 250, type: 'kg' },
-  { label: '500g', value: 500, type: 'kg' },
-  { label: '1 KG', value: 1, type: 'kg_actual' },
-  { label: '5 KG', value: 5, type: 'kg_actual' },
-  { label: '1 Pc', value: 1, type: 'piece' },
-  { label: '5 Pc', value: 5, type: 'piece' },
+  { label: '100g', value: 100, type: 'g' },
+  { label: '250g', value: 250, type: 'g' },
+  { label: '500g', value: 500, type: 'g' },
+  { label: '1 KG', value: 1000, type: 'g' },
+  { label: '2 KG', value: 2000, type: 'g' },
+  { label: '5 KG', value: 5000, type: 'g' },
   { label: '1 Bowl', value: 1, type: 'bowl' },
+  { label: '2 Bowl', value: 2, type: 'bowl' },
 ]
 
 export default function POSClient({ products }: { products: Product[] }) {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [quantity, setQuantity] = useState<number | ''>('')
-  const [unitType, setUnitType] = useState<'kg' | 'kg_actual' | 'piece' | 'bowl'>('kg')
+  // 'g' = grams directly, 'kg' = user types KG, 'bowl' = bowls
+  const [unitType, setUnitType] = useState<'g' | 'kg' | 'bowl'>('g')
   const [toast, setToast] = useState<{ amount: number } | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
 
+  // Compute the amount to charge
   let currentAmount = 0
   if (selectedProduct && typeof quantity === 'number') {
-    if ((unitType === 'kg' || unitType === 'kg_actual') && selectedProduct.pricePerKg) {
-      const effectiveGrams = unitType === 'kg_actual' ? quantity * 1000 : quantity
-      currentAmount = (selectedProduct.pricePerKg / 1000) * effectiveGrams
-    } else if (unitType === 'piece' && selectedProduct.pricePerPiece) {
-      currentAmount = selectedProduct.pricePerPiece * quantity
-    } else if (unitType === 'bowl' && selectedProduct.pricePerBowl) {
+    if (unitType === 'bowl' && selectedProduct.pricePerBowl) {
       currentAmount = selectedProduct.pricePerBowl * quantity
+    } else if (selectedProduct.pricePerKg) {
+      const grams = unitType === 'kg' ? quantity * 1000 : quantity
+      currentAmount = (selectedProduct.pricePerKg / 1000) * grams
     }
+  }
+
+  // Always store quantity in GRAMS
+  const computeStoredGrams = (): number => {
+    if (typeof quantity !== 'number') return 0
+    if (unitType === 'kg') return quantity * 1000
+    if (unitType === 'bowl') return quantity * BOWL_IN_GRAMS
+    return quantity // already grams
   }
 
   const handleSale = async () => {
     if (!selectedProduct || typeof quantity !== 'number' || quantity <= 0) return
 
-    // Capture values before resetting state
     const product = selectedProduct
     const amount = currentAmount
-    const storedQuantity = unitType === 'kg_actual' ? quantity * 1000 : quantity
+    const storedGrams = computeStoredGrams()
 
-    // Optimistic: reset UI immediately so it feels instant
+    // Optimistic: reset UI immediately
     setSelectedProduct(null)
     setQuantity('')
     setToast({ amount })
     setTimeout(() => setToast(null), 3000)
 
-    // Fire to server in background — no blocking
+    // Fire to server in background
     createSale({
-      items: [{ productId: product.id, quantity: storedQuantity, amount, profit: 0 }],
+      items: [{ productId: product.id, quantity: storedGrams, amount, profit: 0 }],
       totalAmount: amount,
       totalProfit: 0,
     }).catch(() => {
-      // If it fails, show a subtle error
       setToast(null)
       alert('Sale failed to save. Please try again.')
     })
   }
 
-
   const filtered = products.filter((p) =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
+
+  // Format input display unit label
+  const unitLabel = unitType === 'kg' ? 'KG' : unitType === 'bowl' ? 'bowl' : 'g'
 
   return (
     <div className="space-y-4 pb-4">
@@ -108,8 +118,8 @@ export default function POSClient({ products }: { products: Product[] }) {
             key={product.id}
             onClick={() => {
               setSelectedProduct(product)
-              if (product.pricePerKg) setUnitType('kg')
-              else if (product.pricePerPiece) setUnitType('piece')
+              // Default to g for kg products, bowl for bowl-only products
+              if (product.pricePerKg) setUnitType('g')
               else if (product.pricePerBowl) setUnitType('bowl')
               setQuantity('')
             }}
@@ -131,8 +141,7 @@ export default function POSClient({ products }: { products: Product[] }) {
                 : 'bg-orange-500/10 text-orange-400'
             }`}>
               {product.pricePerKg && `₹${product.pricePerKg}/kg`}
-              {!product.pricePerKg && product.pricePerPiece && `₹${product.pricePerPiece}/pc`}
-              {!product.pricePerKg && !product.pricePerPiece && product.pricePerBowl && `₹${product.pricePerBowl}/bowl`}
+              {!product.pricePerKg && product.pricePerBowl && `₹${product.pricePerBowl}/bowl`}
             </span>
           </button>
         ))}
@@ -170,19 +179,22 @@ export default function POSClient({ products }: { products: Product[] }) {
               {/* Presets */}
               <div className="grid grid-cols-4 gap-2">
                 {PRESET_QUANTITIES.filter((p) => {
-                  if (p.type.includes('kg') && !selectedProduct.pricePerKg) return false
-                  if (p.type === 'piece' && !selectedProduct.pricePerPiece) return false
+                  if (p.type !== 'bowl' && !selectedProduct.pricePerKg) return false
                   if (p.type === 'bowl' && !selectedProduct.pricePerBowl) return false
                   return true
                 }).map((preset, idx) => (
                   <button
                     key={idx}
                     onClick={() => {
-                      setUnitType(preset.type as any)
+                      setUnitType(preset.type === 'bowl' ? 'bowl' : 'g')
                       setQuantity(preset.value)
                     }}
                     className={`py-2.5 rounded-xl font-bold text-sm transition-all ${
-                      quantity === preset.value && unitType === preset.type
+                      quantity === preset.value && (
+                        (preset.type === 'bowl' && unitType === 'bowl') ||
+                        (preset.type === 'g' && unitType === 'g') ||
+                        (preset.type === 'g' && unitType === 'kg')
+                      )
                         ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-[0_0_20px_rgba(249,115,22,0.3)]'
                         : 'bg-white/[0.05] text-white/40 hover:bg-white/10 hover:text-white/70 border border-white/[0.05]'
                     }`}
@@ -199,17 +211,25 @@ export default function POSClient({ products }: { products: Product[] }) {
                   {selectedProduct.pricePerKg && (
                     <div className="flex bg-white/[0.07] p-1 rounded-xl">
                       <button
-                        onClick={() => setUnitType('kg')}
-                        className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${unitType === 'kg' ? 'bg-orange-500/20 text-orange-400' : 'text-white/30 hover:text-white/50'}`}
+                        onClick={() => setUnitType('g')}
+                        className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${unitType === 'g' ? 'bg-orange-500/20 text-orange-400' : 'text-white/30 hover:text-white/50'}`}
                       >
                         Grams
                       </button>
                       <button
-                        onClick={() => setUnitType('kg_actual')}
-                        className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${unitType === 'kg_actual' ? 'bg-orange-500/20 text-orange-400' : 'text-white/30 hover:text-white/50'}`}
+                        onClick={() => setUnitType('kg')}
+                        className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${unitType === 'kg' ? 'bg-orange-500/20 text-orange-400' : 'text-white/30 hover:text-white/50'}`}
                       >
                         KG
                       </button>
+                      {selectedProduct.pricePerBowl && (
+                        <button
+                          onClick={() => setUnitType('bowl')}
+                          className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${unitType === 'bowl' ? 'bg-orange-500/20 text-orange-400' : 'text-white/30 hover:text-white/50'}`}
+                        >
+                          Bowl
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>
@@ -222,9 +242,15 @@ export default function POSClient({ products }: { products: Product[] }) {
                     className="w-full bg-transparent border-none text-[48px] font-black text-white focus:outline-none placeholder:text-white/10 py-2"
                   />
                   <span className="absolute right-0 top-1/2 -translate-y-1/2 text-white/20 font-bold text-2xl">
-                    {unitType === 'piece' ? 'pc' : unitType === 'bowl' ? 'bowl' : unitType === 'kg_actual' ? 'KG' : 'g'}
+                    {unitLabel}
                   </span>
                 </div>
+                {/* Show stored grams preview */}
+                {typeof quantity === 'number' && quantity > 0 && (
+                  <p className="text-white/20 text-xs font-bold mt-1">
+                    = {computeStoredGrams()}g stored
+                  </p>
+                )}
               </div>
 
               {/* Submit */}
@@ -236,7 +262,6 @@ export default function POSClient({ products }: { products: Product[] }) {
                 <span className="text-lg tracking-wide">Complete Sale</span>
                 <span className="text-xl font-black text-white/80">₹{currentAmount.toFixed(2)}</span>
               </button>
-
 
             </div>
           </div>

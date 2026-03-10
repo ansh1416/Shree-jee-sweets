@@ -75,7 +75,9 @@ export default async function DashboardPage() {
                           {item.product.name}
                         </span>
                         <span className="text-[11px] font-bold text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded-lg">
-                          {item.quantity < 100 ? `${item.quantity} pc` : `${item.quantity}g`}
+                          {item.quantity >= 1000
+                            ? `${(item.quantity / 1000).toFixed(1)}kg`
+                            : `${item.quantity}g`}
                         </span>
                       </div>
                     ))}

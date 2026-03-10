@@ -93,27 +93,15 @@ export default function AddProductPage() {
                 />
               </div>
               
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-white/25 mb-2 uppercase tracking-widest">Per Piece (₹)</label>
-                  <input
-                    type="number"
-                    name="pricePerPiece"
-                    step="0.01"
-                    className="w-full px-4 py-3.5 bg-orange-500/[0.05] border border-orange-500/[0.15] rounded-2xl text-white font-semibold placeholder:text-white/15 focus:outline-none focus:border-orange-500/60 focus:ring-4 focus:ring-orange-500/10 transition-all"
-                    placeholder="e.g. 20"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-white/25 mb-2 uppercase tracking-widest">Per Bowl (₹)</label>
-                  <input
-                    type="number"
-                    name="pricePerBowl"
-                    step="0.01"
-                    className="w-full px-4 py-3.5 bg-orange-500/[0.05] border border-orange-500/[0.15] rounded-2xl text-white font-semibold placeholder:text-white/15 focus:outline-none focus:border-orange-500/60 focus:ring-4 focus:ring-orange-500/10 transition-all"
-                    placeholder="e.g. 40"
-                  />
-                </div>
+              <div>
+                <label className="block text-xs font-bold text-white/25 mb-2 uppercase tracking-widest">Per Bowl (₹) — 1 bowl = 100g</label>
+                <input
+                  type="number"
+                  name="pricePerBowl"
+                  step="0.01"
+                  className="w-full px-4 py-3.5 bg-orange-500/[0.05] border border-orange-500/[0.15] rounded-2xl text-white font-semibold placeholder:text-white/15 focus:outline-none focus:border-orange-500/60 focus:ring-4 focus:ring-orange-500/10 transition-all"
+                  placeholder="e.g. 40"
+                />
               </div>
             </div>
           </div>
