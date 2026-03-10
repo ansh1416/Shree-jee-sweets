@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic"
+
 import { getProducts, deleteProduct } from '@/app/actions/product'
 import { PlusCircle, Trash2 } from 'lucide-react'
 import Link from 'next/link'
